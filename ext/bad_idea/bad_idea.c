@@ -2,20 +2,53 @@
 #include<stdio.h>
 #include<ruby.h>
 
-extern int32_t double_input(int32_t input);
+typedef struct {
+	uintptr_t data;
+	uint len;
+	uint capacity;
+} array_t;
 
-VALUE bad_double_input(VALUE module, VALUE obj) {
-	Check_Type(obj, T_FIXNUM);
+extern void array_push(array_t *a, uintptr_t item);
+extern void array_inspect(array_t *a, char *s);
 
-	int32_t num = NUM2INT(obj);
-	int32_t doubled = double_input(num);
+static VALUE bad_array_allocate(VALUE klass) {
+	array_t *data;
 
-	printf("%i\n", doubled);
+	// by not defining the free here, we'll leak the data pointer
+	//
+	// ... so fix that someday
+	VALUE vec = Data_Make_Struct(klass, array_t, NULL, -1, data);
 
-	return Qnil;
+	return vec;
+}
+
+VALUE bad_array_push(VALUE obj, VALUE item) {
+        array_t *a;
+        Data_Get_Struct(obj, array_t, a);
+
+	array_push(a, item);
+
+	return obj;
+}
+
+VALUE bad_array_inspect(VALUE obj) {
+	array_t *a;
+	Data_Get_Struct(obj, array_t, a);
+
+	char *ptr = malloc(100); // LOL HAX
+
+	array_inspect(a, ptr);
+        VALUE result = rb_str_new_cstr(ptr) ;
+
+	free(ptr);
+
+	return result;
 }
 
 void Init_bad_idea(void) {
-	VALUE bad_idea = rb_define_module("BadIdea");
-	rb_define_singleton_method(bad_idea, "double_input", bad_double_input, 1);
+	VALUE array = rb_define_class("Array", rb_cObject);
+	rb_define_alloc_func(array, bad_array_allocate);
+
+	rb_define_method(array, "<<", bad_array_push, 1);
+	rb_define_method(array, "inspect", bad_array_inspect, 0);
 }

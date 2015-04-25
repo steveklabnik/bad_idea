@@ -10,3 +10,6 @@ repository = "https://github.com/steveklabnik/bad_idea/"
 [lib]
 name = "bad_idea"
 crate-type = ["staticlib"]
+
+[dependencies]
+libc = "*"

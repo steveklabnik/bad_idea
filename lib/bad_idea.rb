@@ -1,2 +1,4 @@
 require "bad_idea/version"
-require "bad_idea/bad_idea"
+
+Object.send(:remove_const, :Array) if defined?(Array)
+require 'bad_idea/bad_idea'
