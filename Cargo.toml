@@ -1,0 +1,4 @@
+[package]
+name = "bad_idea"
+version = "0.1.0"
+authors = ["Steve Klabnik <steve@steveklabnik.com>"]
