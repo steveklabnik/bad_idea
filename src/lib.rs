@@ -9,14 +9,17 @@ extern crate alloc;
 
 use std::mem;
 use std::slice;
+use std::io::Cursor;
+use std::io::Write;
 
 use core::ptr;
 use core::ptr::Unique;
 
 use alloc::heap::{allocate, reallocate};
 
-use libc::{uintptr_t, c_char};
+use libc::uintptr_t;
 
+#[repr(C)]
 pub struct Array {
     ptr: Unique<uintptr_t>,
     len: usize,
@@ -30,7 +33,7 @@ pub extern fn array_push(a: *mut Array, item: uintptr_t) {
 }
 
 #[no_mangle]
-pub extern fn array_inspect(a: *const Array, s: *mut c_char) {
+pub extern fn array_inspect(a: *const Array, s: *mut u8) {
     let a = unsafe { &*a };
     a.inspect(s);
 }
@@ -55,22 +58,14 @@ impl Array {
         }
     }
 
-    fn inspect(&self, s: *mut c_char) {
-        let mut slice = unsafe { slice::from_raw_parts_mut(s, 100) };
+    fn inspect(&self, s: *mut u8) {
+        let slice = unsafe { slice::from_raw_parts_mut(s, 100) };
+        let mut cursor = Cursor::new(slice);
         if self.len == 0 {
-            slice[0] = '[' as i8;
-            slice[1] = ']' as i8;
+            cursor.write_all(b"[]").ok().expect("couldn't write empty array");
         } else {
-            let mut i = 0;
-            slice[0] = '[' as i8;
-            i += 1;
-
-            for j in format!("{} things", self.len).as_bytes() {
-                slice[i] = *j as i8;
-                i += 1;
-            }
-
-            slice[i] = ']' as i8;
+            let msg = format!("[{} things]", self.len);
+            cursor.write_all(msg.as_bytes()).ok().expect("Couldn't write array");
         }
     }
 }
