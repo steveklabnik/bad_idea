@@ -1,3 +1,15 @@
 target
 Cargo.lock
-Gemfile.lock
+pkg
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+*.o
+*.so
+*.a
